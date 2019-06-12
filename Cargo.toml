@@ -23,6 +23,7 @@ ring = "0.14"
 untrusted = "0.6"
 pem = { version = "0.6", optional = true }
 chrono = "0.4.6"
+x509-parser = { version = "0.4.1", optional = true, git = "https://github.com/fzgregor/x509-parser.git" }
 
 [features]
 default = ["pem"]
