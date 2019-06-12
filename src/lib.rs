@@ -99,12 +99,20 @@ pub fn generate_simple_self_signed(subject_alt_names :impl Into<Vec<String>>) ->
 /// pkcs-9-at-extensionRequest in RFC 2985
 const OID_PKCS_9_AT_EXTENSION_REQUEST :&[u64] = &[1, 2, 840, 113549, 1, 9, 14];
 
-/// id-at-countryName in RFC 5820
-const OID_COUNTRY_NAME :&[u64] = &[2, 5, 4, 6];
-/// id-at-organizationName in RFC 5820
-const OID_ORG_NAME :&[u64] = &[2, 5, 4, 10];
 /// id-at-commonName in RFC 5820
 const OID_COMMON_NAME :&[u64] = &[2, 5, 4, 3];
+/// https://www.ietf.org/rfc/rfc4514.txt
+const OID_LOCALITY_NAME :&[u64] = &[2, 5, 4, 7];
+/// https://www.ietf.org/rfc/rfc4514.txt
+const OID_STATE_OR_PROVINCE_NAME :&[u64] = &[2, 5, 4, 8];
+/// id-at-organizationName in RFC 5820
+const OID_ORG_NAME :&[u64] = &[2, 5, 4, 10];
+/// https://www.ietf.org/rfc/rfc4514.txt
+const OID_ORG_UNIT_NAME :&[u64] = &[2, 5, 4, 11];
+/// id-at-countryName in RFC 5820
+const OID_COUNTRY_NAME :&[u64] = &[2, 5, 4, 6];
+/// https://www.ietf.org/rfc/rfc4514.txt
+const OID_STREET_NAME :&[u64] = &[2, 5, 4, 9];
 
 // https://tools.ietf.org/html/rfc5480#section-2.1.1
 const OID_EC_PUBLIC_KEY :&[u64] = &[1, 2, 840, 10045, 2, 1];
@@ -132,9 +140,13 @@ const OID_PE_ACME :&[u64] = &[1, 3, 6, 1, 5, 5, 7, 1, 31];
 #[allow(missing_docs)]
 /// The attribute type of a distinguished name entry
 pub enum DnType {
-	CountryName,
-	OrganizationName,
 	CommonName,
+	LocalityName,
+	StateOrProvinceName,
+	OrganizationName,
+	OrganizationalUnitName,
+	CountryName,
+	StreetName,
 	CustomDnType(Vec<u64>),
 	#[doc(hidden)]
 	_Nonexhaustive,
@@ -143,9 +155,13 @@ pub enum DnType {
 impl DnType {
 	fn to_oid(&self) -> ObjectIdentifier {
 		let sl = match self {
-			DnType::CountryName => OID_COUNTRY_NAME,
-			DnType::OrganizationName => OID_ORG_NAME,
 			DnType::CommonName => OID_COMMON_NAME,
+			DnType::LocalityName => OID_LOCALITY_NAME,
+			DnType::StateOrProvinceName => OID_STATE_OR_PROVINCE_NAME,
+			DnType::OrganizationName => OID_ORG_NAME,
+			DnType::OrganizationalUnitName => OID_ORG_UNIT_NAME,
+			DnType::CountryName => OID_COUNTRY_NAME,
+			DnType::StreetName => OID_STREET_NAME,
 			DnType::CustomDnType(ref oid) => oid.as_slice(),
 			DnType::_Nonexhaustive => unimplemented!(),
 		};
