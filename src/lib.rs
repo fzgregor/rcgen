@@ -48,7 +48,7 @@ use ring::signature::KeyPair as RingKeyPair;
 use untrusted::Input;
 use ring::signature::{self, EcdsaSigningAlgorithm, EdDSAParameters};
 use yasna::DERWriter;
-use yasna::models::GeneralizedTime;
+use yasna::models::UTCTime;
 use chrono::{DateTime, Timelike};
 use chrono::{NaiveDate, Utc};
 use std::collections::HashMap;
@@ -239,7 +239,7 @@ impl Default for CertificateParams {
 	fn default() -> Self {
 		// not_before and not_after set to reasonably long dates
 		let not_before = date_time_ymd(1975, 01, 01);
-		let not_after = date_time_ymd(4096, 01, 01);
+		let not_after = date_time_ymd(2030, 01, 01);
 		let mut distinguished_name = DistinguishedName::new();
 		distinguished_name.push(DnType::CommonName, "rcgen self signed cert");
 		CertificateParams {
@@ -392,19 +392,10 @@ pub fn date_time_ymd(year :i32, month :u32, day :u32) -> DateTime<Utc> {
 	DateTime::<Utc>::from_utc(naive_dt, Utc)
 }
 
-fn dt_to_generalized(dt :&DateTime<Utc>) -> Result<GeneralizedTime, RcgenError> {
+fn dt_to_utctime(dt :&DateTime<Utc>) -> Result<UTCTime, RcgenError> {
 	let mut date_time = *dt;
-	// Set nanoseconds to zero (or to one leap second if there is a leap second)
-	// This is needed because the GeneralizedTime serializer would otherwise
-	// output fractional values which RFC 5820 explicitly forbode [1].
-	// [1]: https://tools.ietf.org/html/rfc5280#section-4.1.2.5.2
-	let nanos = if date_time.nanosecond() >= 1_000_000 {
-		1_000_000
-	} else {
-		0
-	};
-	date_time = date_time.with_nanosecond(nanos).ok_or(RcgenError::Time)?;
-	Ok(GeneralizedTime::from_datetime::<Utc>(&date_time))
+	date_time = date_time.with_nanosecond(0).ok_or(RcgenError::Time)?;
+	Ok(UTCTime::from_datetime::<Utc>(&date_time))
 }
 
 impl Certificate {
@@ -503,11 +494,11 @@ impl Certificate {
 			// Write validity
 			writer.next().write_sequence(|writer| {
 				// Not before
-				let nb_gt = dt_to_generalized(&self.params.not_before)?;
-				writer.next().write_generalized_time(&nb_gt);
+				let nb_gt = dt_to_utctime(&self.params.not_before)?;
+				writer.next().write_utctime(&nb_gt);
 				// Not after
-				let na_gt = dt_to_generalized(&self.params.not_after)?;
-				writer.next().write_generalized_time(&na_gt);
+				let na_gt = dt_to_utctime(&self.params.not_after)?;
+				writer.next().write_utctime(&na_gt);
 				Ok::<(), RcgenError>(())
 			})?;
 			// Write subject
